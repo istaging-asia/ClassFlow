@@ -44,19 +44,17 @@ export default function LoginPage() {
           <div>
             <div
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 10,
+                width: 48,
+                height: 48,
+                borderRadius: 12,
                 background: 'rgba(255,255,255,0.18)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: 18,
                 marginBottom: 20,
               }}
             >
-              C
+              <img src="/favicon/android-icon-96x96.png" alt="ClassFlow" width={32} height={32} />
             </div>
             <Typography.Title level={2} style={{ color: '#fff', margin: 0, letterSpacing: -0.5 }}>
               ClassFlow

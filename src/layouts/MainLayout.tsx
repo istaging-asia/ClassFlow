@@ -69,22 +69,13 @@ export default function MainLayout({ role }: { role: Role }) {
           }}
           onClick={() => navigate(role === 'admin' ? '/admin/logs' : '/instructor/logs')}
         >
-          <div
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 8,
-              background: 'linear-gradient(135deg, #6C6CF9 0%, #4C4CE0 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: 15,
-            }}
-          >
-            C
-          </div>
+          <img
+            src="/favicon/android-icon-96x96.png"
+            alt="ClassFlow"
+            width={30}
+            height={30}
+            style={{ borderRadius: 8, display: 'block' }}
+          />
           {screens.sm && (
             <Typography.Title level={5} style={{ margin: 0, letterSpacing: -0.3 }}>
               ClassFlow
