@@ -59,6 +59,7 @@ export const lectureLogs: LectureLog[] = [
   { id: 8, instructorId: 1, instructorName: '김도윤', courseName: 'React 실무 프로젝트 과정', date: '2026-08-21', startTime: '09:00', endTime: '12:00', totalHours: 3, studentCount: 19, content: 'API 연동 및 비동기 처리(useEffect, fetch) 실습.', createdAt: '2026-08-21 12:05' },
   { id: 9, instructorId: 2, instructorName: '이서연', courseName: 'UX/UI 디자인 기초', date: '2026-08-23', startTime: '13:00', endTime: '17:00', totalHours: 4, studentCount: 21, content: '와이어프레임 및 Figma 프로토타이핑 실습.', createdAt: '2026-08-23 17:10' },
   { id: 10, instructorId: 3, instructorName: '박지훈', courseName: '데이터 분석 입문 (Python)', date: '2026-08-22', startTime: '10:00', endTime: '13:00', totalHours: 3, studentCount: 14, content: 'Matplotlib/Seaborn을 이용한 데이터 시각화 실습.', createdAt: '2026-08-22 13:15' },
+  { id: 11, instructorId: 1, instructorName: '김도윤', courseName: 'TypeScript 심화', date: '2026-08-31', startTime: '14:00', endTime: '16:00', totalHours: 2, studentCount: 10, content: '오전 React 과정에 이어 오후에는 TypeScript 보강 세션 진행. 제네릭 개념 복습.', createdAt: '2026-08-31 16:10' },
 ];
 
 export const currentInstructor = instructors[0];

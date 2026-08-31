@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  Badge,
   Button,
   Calendar,
   Card,
@@ -12,6 +11,7 @@ import {
   Input,
   InputNumber,
   List,
+  Popover,
   Row,
   Segmented,
   Select,
@@ -23,7 +23,7 @@ import {
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { ClockCircleOutlined, DeleteOutlined, EditOutlined, TeamOutlined } from '@ant-design/icons';
-import { courses, currentInstructor, lectureLogs } from '../mock/data';
+import { courses, currentInstructor, lectureLogs, type LectureLog } from '../mock/data';
 import PageHeader from '../components/PageHeader';
 
 const { TextArea } = Input;
@@ -54,26 +54,13 @@ export default function MyLogsPage() {
     return () => observer.disconnect();
   }, [screens.lg]);
 
-  const MAX_VISIBLE = 2;
-
   const dateCellRender = (value: Dayjs) => {
     const dayLogs = myLogs.filter((log) => log.date === value.format('YYYY-MM-DD'));
     if (dayLogs.length === 0) return null;
-    const visible = dayLogs.slice(0, MAX_VISIBLE);
-    const rest = dayLogs.length - visible.length;
     return (
-      <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-        {visible.map((log) => (
-          <li key={log.id} className="mylog-calendar-item">
-            <Badge color="#5B5BF6" text={<span style={{ fontSize: 11.5 }}>{log.courseName}</span>} />
-          </li>
-        ))}
-        {rest > 0 && (
-          <li className="mylog-calendar-item" style={{ color: '#8c8c9a', fontSize: 11.5 }}>
-            +{rest}건 더보기
-          </li>
-        )}
-      </ul>
+      <div className="mylog-dot-wrap">
+        <DayLogMarker date={value.format('YYYY-MM-DD')} logs={dayLogs} />
+      </div>
     );
   };
 
@@ -215,5 +202,72 @@ export default function MyLogsPage() {
         </Col>
       </Row>
     </div>
+  );
+}
+
+// 캘린더 날짜 칸의 마킹(점) + 클릭 시 해당 날짜의 일지를 고르는 선택 컨트롤
+function DayLogMarker({ date, logs }: { date: string; logs: LectureLog[] }) {
+  const [open, setOpen] = useState(false);
+  const isMulti = logs.length > 1;
+
+  return (
+    <Popover
+      trigger="click"
+      open={open}
+      onOpenChange={setOpen}
+      placement="bottom"
+      title={
+        <Space size={8}>
+          <span>{date}</span>
+          <Tag color={isMulti ? 'orange' : 'blue'} style={{ margin: 0 }}>
+            {logs.length}건
+          </Tag>
+        </Space>
+      }
+      content={
+        <div style={{ width: 268 }}>
+          {isMulti && (
+            <Typography.Text type="secondary" style={{ fontSize: 12 }}>
+              수정 또는 삭제할 일지를 선택하세요.
+            </Typography.Text>
+          )}
+          <List
+            size="small"
+            dataSource={logs}
+            split={logs.length > 1}
+            renderItem={(log) => (
+              <List.Item
+                style={{ padding: '10px 0' }}
+                actions={[
+                  <Button key="edit" type="text" size="small" icon={<EditOutlined />} onClick={() => setOpen(false)} />,
+                  <Button key="del" type="text" size="small" danger icon={<DeleteOutlined />} onClick={() => setOpen(false)} />,
+                ]}
+              >
+                <List.Item.Meta
+                  title={<span style={{ fontSize: 13.5 }}>{log.courseName}</span>}
+                  description={
+                    <Space size={10} style={{ fontSize: 12, color: '#8c8c9a' }}>
+                      <span>
+                        <ClockCircleOutlined /> {log.startTime}~{log.endTime}
+                      </span>
+                      <span>
+                        <TeamOutlined /> {log.studentCount}명
+                      </span>
+                    </Space>
+                  }
+                />
+              </List.Item>
+            )}
+          />
+        </div>
+      }
+    >
+      <span
+        className={`mylog-dot ${isMulti ? 'mylog-dot-multi' : 'mylog-dot-single'}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {isMulti ? logs.length : ''}
+      </span>
+    </Popover>
   );
 }

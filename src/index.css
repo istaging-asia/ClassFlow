@@ -95,18 +95,47 @@ body {
   overflow: hidden;
 }
 
-.mylog-calendar-item {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  margin-bottom: 2px;
+/* 날짜 칸 안의 일정 마킹(점) - 텍스트 없이 점으로만 표시 */
+.mylog-dot-wrap {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
 }
 
-.mylog-calendar-item .ant-badge-status-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-  display: inline-block;
-  vertical-align: middle;
+.mylog-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+  transition: transform 0.15s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.mylog-dot:hover {
+  transform: scale(1.12);
+}
+
+/* 일정이 1건인 날 - 단색 점 */
+.mylog-dot-single {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #5b5bf6;
+}
+
+/* 일정이 2건 이상인 날 - 다른 색상 + 건수 표시 */
+.mylog-dot-multi {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: #f5a623;
+  font-size: 11px;
 }
