@@ -35,17 +35,50 @@ body {
   }
 }
 
-/* 수업 일지 캘린더 - 모든 날짜 칸을 고정 크기로 유지 */
-.mylog-calendar table {
-  table-layout: fixed;
+/* 수업 일지 캘린더 - 좌측 등록 카드 높이에 맞춰 날짜 칸이 균등하게 채워지도록 구성 */
+.mylog-calendar,
+.mylog-calendar .ant-picker-calendar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
-.mylog-calendar .ant-picker-cell {
-  height: 84px;
+.mylog-calendar .ant-picker-calendar-header {
+  flex: 0 0 auto;
+}
+
+.mylog-calendar .ant-picker-panel {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mylog-calendar .ant-picker-date-panel {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.mylog-calendar .ant-picker-body {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.mylog-calendar table {
+  table-layout: fixed;
+  height: 100%;
+}
+
+/* 남는 세로 공간을 tbody 행들이 균등하게 나눠 갖도록 하는 CSS 테이블 트릭 */
+.mylog-calendar tbody tr {
+  height: 1%;
 }
 
 .mylog-calendar .ant-picker-cell-inner.ant-picker-calendar-date {
-  height: 84px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -58,7 +91,7 @@ body {
 
 .mylog-calendar .ant-picker-calendar-date-content {
   flex: 1 1 auto;
-  height: 54px;
+  min-height: 0;
   overflow: hidden;
 }
 

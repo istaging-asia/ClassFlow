@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Badge,
   Button,
@@ -8,6 +8,7 @@ import {
   DatePicker,
   Empty,
   Form,
+  Grid,
   Input,
   InputNumber,
   List,
@@ -27,11 +28,31 @@ import PageHeader from '../components/PageHeader';
 
 const { TextArea } = Input;
 
+const { useBreakpoint } = Grid;
+
 export default function MyLogsPage() {
   const [view, setView] = useState<'list' | 'calendar'>('list');
   const myLogs = lectureLogs
     .filter((log) => log.instructorId === currentInstructor.id)
     .sort((a, b) => (a.date < b.date ? 1 : -1));
+
+  // 좌측 "새 수업 일지 등록" 카드 높이에 우측 카드 높이를 맞춘다 (데스크톱 레이아웃에서만)
+  const formCardRef = useRef<HTMLDivElement>(null);
+  const [syncedHeight, setSyncedHeight] = useState<number>();
+  const screens = useBreakpoint();
+
+  useEffect(() => {
+    const el = formCardRef.current;
+    if (!el || !screens.lg) {
+      setSyncedHeight(undefined);
+      return;
+    }
+    const update = () => setSyncedHeight(el.offsetHeight);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [screens.lg]);
 
   const MAX_VISIBLE = 2;
 
@@ -63,6 +84,7 @@ export default function MyLogsPage() {
       <Row gutter={[20, 20]}>
         <Col xs={24} lg={9}>
           <Card
+            ref={formCardRef}
             title="새 수업 일지 등록"
             styles={{ header: { fontWeight: 600 } }}
           >
@@ -119,7 +141,11 @@ export default function MyLogsPage() {
         <Col xs={24} lg={15}>
           <Card
             title={`내 작성 내역 (${myLogs.length})`}
-            styles={{ header: { fontWeight: 600 } }}
+            styles={{
+              header: { fontWeight: 600, flex: '0 0 auto' },
+              body: { flex: '1 1 auto', overflow: 'auto', minHeight: 0 },
+            }}
+            style={syncedHeight ? { height: syncedHeight, display: 'flex', flexDirection: 'column' } : undefined}
             extra={
               <Segmented
                 value={view}
@@ -181,7 +207,7 @@ export default function MyLogsPage() {
                 />
               )
             ) : (
-              <div className="mylog-calendar">
+              <div className="mylog-calendar" style={{ height: '100%' }}>
                 <Calendar fullscreen={false} cellRender={(value, info) => (info.type === 'date' ? dateCellRender(value) : info.originNode)} />
               </div>
             )}
