@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Button,
   Calendar,
@@ -53,6 +53,44 @@ export default function MyLogsPage() {
     observer.observe(el);
     return () => observer.disconnect();
   }, [screens.lg]);
+
+  // 스케줄 유무와 무관하게 모든 날짜 칸의 높이가 항상 동일하도록,
+  // 남은 세로 공간을 주(week) 행 수로 나눠 픽셀 단위 행 높이를 직접 계산한다.
+  // (CSS만으로는 "tbody tr { height: 1% }" 트릭이 빈 칸 행에서 깨지는 경우가 있어 JS로 보정)
+  const calendarWrapRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const wrap = calendarWrapRef.current;
+    if (!wrap) return;
+
+    // 좌측 폼과 높이를 맞추는 데스크톱(lg 이상) 레이아웃이 아니면
+    // 칸 높이를 강제로 채우지 않고 CSS 기본값(84px)을 그대로 사용한다.
+    if (view !== 'calendar' || !syncedHeight) {
+      wrap.style.removeProperty('--mylog-row-h');
+      return;
+    }
+
+    const recompute = () => {
+      const body = wrap.querySelector<HTMLElement>('.ant-picker-body');
+      const thead = wrap.querySelector<HTMLElement>('thead');
+      const rows = wrap.querySelectorAll<HTMLElement>('tbody tr');
+      if (!body || !thead || rows.length === 0) return;
+      const rowHeight = Math.floor((body.clientHeight - thead.clientHeight) / rows.length);
+      wrap.style.setProperty('--mylog-row-h', `${rowHeight}px`);
+    };
+
+    recompute();
+    const resizeObserver = new ResizeObserver(recompute);
+    resizeObserver.observe(wrap);
+    // 월 이동 시 tbody의 행(tr) 개수(5주/6주)가 바뀌므로 DOM 변화도 감지
+    const mutationObserver = new MutationObserver(recompute);
+    mutationObserver.observe(wrap, { childList: true, subtree: true });
+
+    return () => {
+      resizeObserver.disconnect();
+      mutationObserver.disconnect();
+    };
+  }, [view, syncedHeight]);
 
   const dateCellRender = (value: Dayjs) => {
     const dayLogs = myLogs.filter((log) => log.date === value.format('YYYY-MM-DD'));
@@ -194,7 +232,11 @@ export default function MyLogsPage() {
                 />
               )
             ) : (
-              <div className="mylog-calendar" style={{ height: '100%' }}>
+              <div
+                className={`mylog-calendar${syncedHeight ? ' mylog-calendar--synced' : ''}`}
+                ref={calendarWrapRef}
+                style={syncedHeight ? { height: '100%' } : undefined}
+              >
                 <Calendar fullscreen={false} cellRender={(value, info) => (info.type === 'date' ? dateCellRender(value) : info.originNode)} />
               </div>
             )}
