@@ -33,16 +33,25 @@ export default function MyLogsPage() {
     .filter((log) => log.instructorId === currentInstructor.id)
     .sort((a, b) => (a.date < b.date ? 1 : -1));
 
+  const MAX_VISIBLE = 2;
+
   const dateCellRender = (value: Dayjs) => {
     const dayLogs = myLogs.filter((log) => log.date === value.format('YYYY-MM-DD'));
     if (dayLogs.length === 0) return null;
+    const visible = dayLogs.slice(0, MAX_VISIBLE);
+    const rest = dayLogs.length - visible.length;
     return (
       <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-        {dayLogs.map((log) => (
-          <li key={log.id} style={{ marginBottom: 2 }}>
+        {visible.map((log) => (
+          <li key={log.id} className="mylog-calendar-item">
             <Badge color="#5B5BF6" text={<span style={{ fontSize: 11.5 }}>{log.courseName}</span>} />
           </li>
         ))}
+        {rest > 0 && (
+          <li className="mylog-calendar-item" style={{ color: '#8c8c9a', fontSize: 11.5 }}>
+            +{rest}건 더보기
+          </li>
+        )}
       </ul>
     );
   };
@@ -172,7 +181,9 @@ export default function MyLogsPage() {
                 />
               )
             ) : (
-              <Calendar fullscreen={false} cellRender={(value, info) => (info.type === 'date' ? dateCellRender(value) : info.originNode)} />
+              <div className="mylog-calendar">
+                <Calendar fullscreen={false} cellRender={(value, info) => (info.type === 'date' ? dateCellRender(value) : info.originNode)} />
+              </div>
             )}
           </Card>
         </Col>

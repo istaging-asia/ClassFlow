@@ -34,3 +34,46 @@ body {
     display: none !important;
   }
 }
+
+/* 수업 일지 캘린더 - 모든 날짜 칸을 고정 크기로 유지 */
+.mylog-calendar table {
+  table-layout: fixed;
+}
+
+.mylog-calendar .ant-picker-cell {
+  height: 84px;
+}
+
+.mylog-calendar .ant-picker-cell-inner.ant-picker-calendar-date {
+  height: 84px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 4px 6px 2px;
+}
+
+.mylog-calendar .ant-picker-calendar-date-value {
+  flex: 0 0 auto;
+}
+
+.mylog-calendar .ant-picker-calendar-date-content {
+  flex: 1 1 auto;
+  height: 54px;
+  overflow: hidden;
+}
+
+.mylog-calendar-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.mylog-calendar-item .ant-badge-status-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  display: inline-block;
+  vertical-align: middle;
+}
