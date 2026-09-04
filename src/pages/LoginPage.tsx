@@ -1,10 +1,40 @@
-import { Button, Form, Input, Typography, Divider } from 'antd';
+import { useState } from 'react';
+import { Button, Form, Input, Typography, Divider, message } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { brandGradient } from '../theme';
+import { useAuth } from '../context/AuthContext';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAuth();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (values: { login_id: string; password: string }) => {
+    setLoading(true);
+    try {
+      const user = await login(values);
+      message.success(`${user.name}님 환영합니다.`);
+      if (user.role === 'ADMIN') {
+        navigate('/admin/logs');
+      } else {
+        navigate('/instructor/logs');
+      }
+    } catch (err: any) {
+      const errMsg =
+        err.response?.data?.error?.message ||
+        err.response?.data?.detail ||
+        '아이디 또는 비밀번호를 확인해 주세요.';
+      message.error(errMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFillAccount = (loginId: string, pw: string) => {
+    form.setFieldsValue({ login_id: loginId, password: pw });
+  };
 
   return (
     <div
@@ -79,24 +109,39 @@ export default function LoginPage() {
           </Typography.Title>
           <Typography.Text type="secondary">사내 계정으로 로그인해 주세요.</Typography.Text>
 
-          <Form layout="vertical" style={{ marginTop: 28 }} requiredMark={false}>
-            <Form.Item label="아이디" required>
+          <Form
+            form={form}
+            layout="vertical"
+            style={{ marginTop: 28 }}
+            requiredMark={false}
+            onFinish={handleSubmit}
+            initialValues={{ login_id: 'admin', password: 'admin1234!' }}
+          >
+            <Form.Item
+              label="아이디"
+              name="login_id"
+              rules={[{ required: true, message: '아이디를 입력해 주세요.' }]}
+            >
               <Input size="large" prefix={<UserOutlined style={{ color: '#bbb' }} />} placeholder="사내 아이디를 입력하세요" />
             </Form.Item>
-            <Form.Item label="비밀번호" required>
+            <Form.Item
+              label="비밀번호"
+              name="password"
+              rules={[{ required: true, message: '비밀번호를 입력해 주세요.' }]}
+            >
               <Input.Password size="large" prefix={<LockOutlined style={{ color: '#bbb' }} />} placeholder="비밀번호를 입력하세요" />
             </Form.Item>
-            <Button type="primary" size="large" block onClick={() => navigate('/instructor/logs')}>
+            <Button type="primary" size="large" block htmlType="submit" loading={loading}>
               로그인
             </Button>
 
-            <Divider style={{ fontSize: 12, color: '#bbb', margin: '24px 0 16px' }}>디자인 미리보기</Divider>
+            <Divider style={{ fontSize: 12, color: '#bbb', margin: '24px 0 16px' }}>테스트 계정 자동 입력</Divider>
             <div style={{ display: 'flex', gap: 8 }}>
-              <Button block onClick={() => navigate('/instructor/logs')}>
-                강사 화면 보기
+              <Button block onClick={() => handleFillAccount('inst1', 'pass1234!')}>
+                강사 (김도윤)
               </Button>
-              <Button block onClick={() => navigate('/admin/logs')}>
-                관리자 화면 보기
+              <Button block onClick={() => handleFillAccount('admin', 'admin1234!')}>
+                관리자 (admin)
               </Button>
             </div>
           </Form>

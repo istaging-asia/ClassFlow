@@ -11,7 +11,7 @@ import {
   DownOutlined,
 } from '@ant-design/icons';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { currentInstructor } from '../mock/data';
+import { useAuth } from '../context/AuthContext';
 
 const { Header, Content } = Layout;
 const { useBreakpoint } = Grid;
@@ -36,15 +36,29 @@ export default function MainLayout({ role }: { role: Role }) {
   const navigate = useNavigate();
   const location = useLocation();
   const screens = useBreakpoint();
+  const { user, logout } = useAuth();
   const items = role === 'admin' ? adminMenuItems : instructorMenuItems;
 
   const selectedKey =
     items?.map((i) => i!.key as string).find((key) => location.pathname.startsWith(key)) ??
     (items?.[0]!.key as string);
 
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
   const userMenu: MenuProps['items'] = [
-    { key: 'logout', icon: <LogoutOutlined />, label: '로그아웃' },
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: '로그아웃',
+      onClick: handleLogout,
+    },
   ];
+
+  const displayName = user?.name || (role === 'admin' ? '관리자' : '강사');
+  const avatarColor = user?.color || (role === 'admin' ? '#845EF7' : '#5B5BF6');
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
@@ -92,18 +106,18 @@ export default function MainLayout({ role }: { role: Role }) {
           disabledOverflow={false}
         />
 
-        <Dropdown menu={{ items: userMenu, onClick: () => navigate('/login') }} trigger={['click']}>
+        <Dropdown menu={{ items: userMenu }} trigger={['click']}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', flexShrink: 0 }}>
-            <Avatar style={{ background: currentInstructor.color }}>
-              {role === 'admin' ? '관' : currentInstructor.name[0]}
+            <Avatar style={{ background: avatarColor }}>
+              {displayName[0]}
             </Avatar>
             {screens.sm && (
               <div style={{ lineHeight: 1.2 }}>
                 <div style={{ fontSize: 13, fontWeight: 600 }}>
-                  {role === 'admin' ? '관리자' : currentInstructor.name}
+                  {displayName}
                 </div>
-                <Tag color={role === 'admin' ? 'purple' : 'blue'} style={{ marginTop: 2, fontSize: 11, lineHeight: '16px' }}>
-                  {role === 'admin' ? 'ADMIN' : 'INSTRUCTOR'}
+                <Tag color={user?.role === 'ADMIN' ? 'purple' : 'blue'} style={{ marginTop: 2, fontSize: 11, lineHeight: '16px' }}>
+                  {user?.role || (role === 'admin' ? 'ADMIN' : 'INSTRUCTOR')}
                 </Tag>
               </div>
             )}

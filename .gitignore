@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Local env files (VITE_* 는 빌드 시 번들에 노출되므로 비밀 저장 금지)
+.env
+.env.local
+.env.*.local
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
