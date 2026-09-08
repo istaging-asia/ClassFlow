@@ -33,11 +33,11 @@ export interface LectureLog {
   course_id?: number | null;
   course_name: string;
   date: string; // YYYY-MM-DD
-  start_time: string; // HH:mm
-  end_time: string; // HH:mm
-  total_hours: number;
+  total_hours: number; // 총 수업 시간 (시간 단위)
   student_count: number;
   content: string;
+  start_time?: string | null; // 레거시 호환
+  end_time?: string | null;   // 레거시 호환
   created_at: string;
   updated_at: string;
 }
