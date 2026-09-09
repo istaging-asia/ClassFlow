@@ -20,7 +20,6 @@ import {
   Space,
   Spin,
   Tag,
-  TimePicker,
   Typography,
   message,
 } from 'antd';
@@ -128,7 +127,6 @@ export default function MyLogsPage() {
 
   // 일지 등록 처리
   const handleCreate = async (values: any) => {
-    const [startTime, endTime] = values.time;
     const courseValue = Array.isArray(values.course_name) ? values.course_name[0] : values.course_name;
     const matchedCourse = courses.find((c) => c.name === courseValue);
 
@@ -136,8 +134,7 @@ export default function MyLogsPage() {
       date: values.date.format('YYYY-MM-DD'),
       course_id: matchedCourse ? matchedCourse.id : null,
       course_name: courseValue,
-      start_time: startTime.format('HH:mm'),
-      end_time: endTime.format('HH:mm'),
+      total_hours: values.total_hours,
       student_count: values.student_count || 0,
       content: values.content,
     };
@@ -163,7 +160,7 @@ export default function MyLogsPage() {
     editForm.setFieldsValue({
       date: dayjs(log.date),
       course_name: [log.course_name],
-      time: [dayjs(log.start_time, 'HH:mm'), dayjs(log.end_time, 'HH:mm')],
+      total_hours: log.total_hours,
       student_count: log.student_count,
       content: log.content,
     });
@@ -173,7 +170,6 @@ export default function MyLogsPage() {
   // 일지 수정 처리
   const handleUpdate = async (values: any) => {
     if (!editingLog) return;
-    const [startTime, endTime] = values.time;
     const courseValue = Array.isArray(values.course_name) ? values.course_name[0] : values.course_name;
     const matchedCourse = courses.find((c) => c.name === courseValue);
 
@@ -181,8 +177,7 @@ export default function MyLogsPage() {
       date: values.date.format('YYYY-MM-DD'),
       course_id: matchedCourse ? matchedCourse.id : null,
       course_name: courseValue,
-      start_time: startTime.format('HH:mm'),
-      end_time: endTime.format('HH:mm'),
+      total_hours: values.total_hours,
       student_count: values.student_count || 0,
       content: values.content,
     };
@@ -258,12 +253,23 @@ export default function MyLogsPage() {
                 />
               </Form.Item>
 
-              <Form.Item label="수업 시간" name="time" rules={[{ required: true, message: '시간을 선택하세요.' }]}>
-                <TimePicker.RangePicker
-                  format="HH:mm"
+              <Form.Item
+                label="총 수업 시간"
+                name="total_hours"
+                rules={[
+                  { required: true, message: '총 수업 시간을 입력하세요.' },
+                  { type: 'number', min: 1, max: 24, message: '1~24 사이의 정수를 입력하세요.' },
+                ]}
+              >
+                <InputNumber
                   size="large"
+                  min={1}
+                  max={24}
+                  step={1}
+                  precision={0}
                   style={{ width: '100%' }}
-                  placeholder={['시작 시간', '종료 시간']}
+                  placeholder="예: 3"
+                  addonAfter="시간"
                 />
               </Form.Item>
 
@@ -356,7 +362,7 @@ export default function MyLogsPage() {
                         </Space>
                         <Space size={14} style={{ color: '#8c8c9a', fontSize: 12.5 }}>
                           <span>
-                            <ClockCircleOutlined /> {log.start_time}~{log.end_time} ({log.total_hours}h)
+                            <ClockCircleOutlined /> 총 {log.total_hours}시간
                           </span>
                           <span>
                             <TeamOutlined /> {log.student_count}명
@@ -406,8 +412,24 @@ export default function MyLogsPage() {
             />
           </Form.Item>
 
-          <Form.Item label="수업 시간" name="time" rules={[{ required: true, message: '시간을 선택하세요.' }]}>
-            <TimePicker.RangePicker format="HH:mm" size="large" style={{ width: '100%' }} />
+          <Form.Item
+            label="총 수업 시간"
+            name="total_hours"
+            rules={[
+              { required: true, message: '총 수업 시간을 입력하세요.' },
+              { type: 'number', min: 1, max: 24, message: '1~24 사이의 정수를 입력하세요.' },
+            ]}
+          >
+            <InputNumber
+              size="large"
+              min={1}
+              max={24}
+              step={1}
+              precision={0}
+              style={{ width: '100%' }}
+              placeholder="예: 3"
+              addonAfter="시간"
+            />
           </Form.Item>
 
           <Form.Item label="참여 인원" name="student_count" rules={[{ required: true, message: '인원을 입력하세요.' }]}>
@@ -503,7 +525,7 @@ function DayLogMarker({
                   description={
                     <Space size={10} style={{ fontSize: 12, color: '#8c8c9a' }}>
                       <span>
-                        <ClockCircleOutlined /> {log.start_time}~{log.end_time}
+                        <ClockCircleOutlined /> 총 {log.total_hours}시간
                       </span>
                       <span>
                         <TeamOutlined /> {log.student_count}명

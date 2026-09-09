@@ -5,22 +5,18 @@ export interface LogCreateParams {
   date: string; // YYYY-MM-DD
   course_id?: number | null;
   course_name: string;
-  total_hours?: number; // 총 수업 시간 (정수 시간 단위)
+  total_hours: number; // 총 수업 시간 (정수 1~24)
   student_count: number;
   content: string;
-  start_time?: string; // 레거시 호환
-  end_time?: string;   // 레거시 호환
 }
 
 export interface LogUpdateParams {
   date?: string;
   course_id?: number | null;
   course_name?: string;
-  total_hours?: number; // 총 수업 시간 (정수 시간 단위)
+  total_hours?: number; // 총 수업 시간 (정수 1~24)
   student_count?: number;
   content?: string;
-  start_time?: string;
-  end_time?: string;
 }
 
 export interface MyLogsFilterParams {
