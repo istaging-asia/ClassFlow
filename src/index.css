@@ -163,3 +163,126 @@ body {
   color: #f5a623;
   box-shadow: 0 0 0 1px rgba(245, 166, 35, 0.25) inset;
 }
+
+/* ========================================================
+   관리자 전체 일지 캘린더 (AdminLogsPage)
+   ======================================================== */
+.admin-calendar {
+  background: #ffffff;
+  border-radius: 12px;
+}
+
+.admin-calendar table {
+  table-layout: fixed;
+}
+
+.admin-calendar tbody tr {
+  height: 104px;
+}
+
+.admin-calendar tbody td.ant-picker-cell {
+  height: 104px;
+  vertical-align: top;
+  transition: background-color 0.15s ease;
+}
+
+.admin-calendar .ant-picker-cell-inner.ant-picker-calendar-date {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 4px 6px 4px;
+  position: relative;
+}
+
+.admin-calendar .ant-picker-calendar-date-value {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 500;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  align-self: flex-start;
+  flex: 0 0 auto;
+}
+
+/* 오늘 날짜 (Today) - 빨간색 원형 뱃지 */
+.admin-calendar .ant-picker-cell-today .ant-picker-calendar-date-value {
+  background-color: #E55C5C !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 6px rgba(229, 92, 92, 0.4);
+}
+
+.admin-calendar .ant-picker-calendar-date-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  margin-top: 2px;
+}
+
+/* 날짜 셀 내부 래퍼 */
+.admin-cal-cell {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 0;
+  cursor: pointer;
+}
+
+/* 우측 상단 총 강의 수 (+N) */
+.admin-cal-count {
+  position: absolute;
+  top: -24px;
+  right: 0;
+  z-index: 2;
+  color: #F5484A;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 24px;
+  letter-spacing: -0.02em;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 강사명(시간) 칩 목록 */
+.admin-cal-events {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.admin-cal-chip {
+  flex: 0 0 auto;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 6px;
+  background: #EEF2FF;
+  color: #5B5BF6;
+  border: 1px solid #D6DDFE;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-cal-more {
+  flex: 0 0 auto;
+  font-size: 10px;
+  font-weight: 600;
+  color: #8c8c9a;
+  padding: 0 2px;
+  line-height: 1.2;
+}
+
+
