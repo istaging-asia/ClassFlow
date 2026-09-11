@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
   Button,
   Calendar,
@@ -125,9 +125,38 @@ export default function MyLogsPage() {
     };
   }, [view, syncedHeight]);
 
+  const courseOptions = useMemo(() => {
+    return courses.map((c) => ({
+      value: c.name,
+      label: (
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span>{c.name}</span>
+          <span style={{ color: '#8c8c9a', fontSize: 12 }}>{c.student_count || 0}명</span>
+        </div>
+      ),
+    }));
+  }, [courses]);
+
+  // 과정 선택 시 해당 과정의 기본 인원 자동 세팅
+  const handleCourseChange = (value?: string) => {
+    if (!value) return;
+    const matched = courses.find((c) => c.name === value);
+    if (matched && matched.student_count && matched.student_count > 0) {
+      createForm.setFieldsValue({ student_count: matched.student_count });
+    }
+  };
+
+  const handleEditCourseChange = (value?: string) => {
+    if (!value) return;
+    const matched = courses.find((c) => c.name === value);
+    if (matched && matched.student_count && matched.student_count > 0) {
+      editForm.setFieldsValue({ student_count: matched.student_count });
+    }
+  };
+
   // 일지 등록 처리
   const handleCreate = async (values: any) => {
-    const courseValue = Array.isArray(values.course_name) ? values.course_name[0] : values.course_name;
+    const courseValue = (Array.isArray(values.course_name) ? values.course_name[0] : values.course_name || '').trim();
     const matchedCourse = courses.find((c) => c.name === courseValue);
 
     const payload: LogCreateParams = {
@@ -159,7 +188,7 @@ export default function MyLogsPage() {
     setEditingLog(log);
     editForm.setFieldsValue({
       date: dayjs(log.date),
-      course_name: [log.course_name],
+      course_name: log.course_name,
       total_hours: log.total_hours,
       student_count: log.student_count,
       content: log.content,
@@ -170,7 +199,7 @@ export default function MyLogsPage() {
   // 일지 수정 처리
   const handleUpdate = async (values: any) => {
     if (!editingLog) return;
-    const courseValue = Array.isArray(values.course_name) ? values.course_name[0] : values.course_name;
+    const courseValue = (Array.isArray(values.course_name) ? values.course_name[0] : values.course_name || '').trim();
     const matchedCourse = courses.find((c) => c.name === courseValue);
 
     const payload: LogUpdateParams = {
@@ -243,13 +272,17 @@ export default function MyLogsPage() {
                 <DatePicker style={{ width: '100%' }} size="large" />
               </Form.Item>
 
-              <Form.Item label="과정명" name="course_name" rules={[{ required: true, message: '과정명을 입력하세요.' }]}>
+              <Form.Item label="과정명" name="course_name" rules={[{ required: true, message: '과정을 선택하세요.' }]}>
                 <Select
+                  showSearch
+                  allowClear
                   size="large"
-                  placeholder="등록된 과정을 선택하거나 직접 입력하세요"
-                  mode="tags"
-                  maxCount={1}
-                  options={courses.map((c) => ({ value: c.name, label: c.name }))}
+                  placeholder="과정을 선택하세요"
+                  options={courseOptions}
+                  onChange={handleCourseChange}
+                  filterOption={(input, option) =>
+                    String(option?.value || '').toLowerCase().includes(input.toLowerCase())
+                  }
                 />
               </Form.Item>
 
@@ -402,13 +435,17 @@ export default function MyLogsPage() {
             <DatePicker style={{ width: '100%' }} size="large" />
           </Form.Item>
 
-          <Form.Item label="과정명" name="course_name" rules={[{ required: true, message: '과정명을 입력하세요.' }]}>
+          <Form.Item label="과정명" name="course_name" rules={[{ required: true, message: '과정을 선택하세요.' }]}>
             <Select
+              showSearch
+              allowClear
               size="large"
-              placeholder="과정 선택 또는 직접 입력"
-              mode="tags"
-              maxCount={1}
-              options={courses.map((c) => ({ value: c.name, label: c.name }))}
+              placeholder="과정을 선택하세요"
+              options={courseOptions}
+              onChange={handleEditCourseChange}
+              filterOption={(input, option) =>
+                String(option?.value || '').toLowerCase().includes(input.toLowerCase())
+              }
             />
           </Form.Item>
 

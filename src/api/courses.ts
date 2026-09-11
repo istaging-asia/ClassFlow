@@ -6,6 +6,7 @@ export interface CourseCreateParams {
   description?: string | null;
   color?: string | null;
   thumbnail_url?: string | null;
+  student_count?: number;
 }
 
 export interface CourseUpdateParams {
@@ -13,6 +14,7 @@ export interface CourseUpdateParams {
   description?: string | null;
   color?: string | null;
   thumbnail_url?: string | null;
+  student_count?: number;
   is_active?: boolean;
 }
 

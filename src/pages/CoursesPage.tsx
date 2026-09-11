@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Button, Card, Col, Form, Input, Modal, Popconfirm, Row, Spin, Typography, message } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined, ReadOutlined, SearchOutlined } from '@ant-design/icons';
+import { Button, Card, Col, Form, Input, InputNumber, Modal, Popconfirm, Row, Space, Spin, Typography, message } from 'antd';
+import { EditOutlined, DeleteOutlined, PlusOutlined, ReadOutlined, SearchOutlined, TeamOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { coursesApi, type CourseUpdateParams } from '../api/courses';
 import type { Course } from '../types/api';
@@ -42,6 +42,7 @@ export default function CoursesPage({ role }: { role: 'instructor' | 'admin' }) 
     editForm.setFieldsValue({
       name: course.name,
       description: course.description,
+      student_count: course.student_count ?? 0,
     });
     setEditModalOpen(true);
   };
@@ -144,9 +145,14 @@ export default function CoursesPage({ role }: { role: 'instructor' | 'admin' }) 
                     : undefined
                 }
               >
-                <Typography.Title level={5} style={{ margin: 0 }}>
-                  {course.name}
-                </Typography.Title>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                  <Typography.Title level={5} style={{ margin: 0 }}>
+                    {course.name}
+                  </Typography.Title>
+                  <Space size={4} style={{ color: '#5B5BF6', fontSize: 13, whiteSpace: 'nowrap', fontWeight: 500 }}>
+                    <TeamOutlined /> {course.student_count ?? 0}명
+                  </Space>
+                </div>
                 <Typography.Paragraph
                   type="secondary"
                   style={{ marginTop: 8, marginBottom: 0, fontSize: 13.5, minHeight: 40 }}
@@ -169,9 +175,18 @@ export default function CoursesPage({ role }: { role: 'instructor' | 'admin' }) 
         destroyOnClose
       >
         <Form form={editForm} layout="vertical" onFinish={handleUpdate} requiredMark={false}>
-          <Form.Item label="과정명" name="name" rules={[{ required: true, message: '과정명을 입력하세요.' }]}>
-            <Input size="large" />
-          </Form.Item>
+          <Row gutter={12}>
+            <Col span={16}>
+              <Form.Item label="과정명" name="name" rules={[{ required: true, message: '과정명을 입력하세요.' }]}>
+                <Input size="large" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="과정 인원" name="student_count" rules={[{ required: true, message: '인원을 입력하세요.' }]}>
+                <InputNumber size="large" min={0} style={{ width: '100%' }} addonAfter="명" />
+              </Form.Item>
+            </Col>
+          </Row>
           <Form.Item label="과정 설명" name="description" rules={[{ required: true, message: '과정 설명을 입력하세요.' }]}>
             <Input.TextArea rows={4} maxLength={300} showCount />
           </Form.Item>

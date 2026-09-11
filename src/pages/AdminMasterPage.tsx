@@ -6,6 +6,7 @@ import {
   Col,
   Form,
   Input,
+  InputNumber,
   List,
   Modal,
   Popconfirm,
@@ -279,14 +280,27 @@ export default function AdminMasterPage() {
         {/* 과정 등록 */}
         <Col xs={24} lg={12}>
           <Card title="신규 과정 등록" styles={{ header: { fontWeight: 600 } }} style={{ marginBottom: 20 }}>
-            <Form form={courseForm} layout="vertical" requiredMark={false} onFinish={handleCreateCourse}>
-              <Form.Item
-                label="과정명"
-                name="name"
-                rules={[{ required: true, message: '과정명을 입력하세요.' }]}
-              >
-                <Input size="large" placeholder="과정명을 입력하세요" />
-              </Form.Item>
+            <Form form={courseForm} layout="vertical" requiredMark={false} onFinish={handleCreateCourse} initialValues={{ student_count: 20 }}>
+              <Row gutter={12}>
+                <Col span={16}>
+                  <Form.Item
+                    label="과정명"
+                    name="name"
+                    rules={[{ required: true, message: '과정명을 입력하세요.' }]}
+                  >
+                    <Input size="large" placeholder="과정명을 입력하세요" />
+                  </Form.Item>
+                </Col>
+                <Col span={8}>
+                  <Form.Item
+                    label="과정 인원"
+                    name="student_count"
+                    rules={[{ required: true, message: '인원을 입력하세요.' }]}
+                  >
+                    <InputNumber size="large" min={0} style={{ width: '100%' }} placeholder="20" addonAfter="명" />
+                  </Form.Item>
+                </Col>
+              </Row>
               <Form.Item
                 label="과정 설명"
                 name="description"
@@ -320,6 +334,7 @@ export default function AdminMasterPage() {
                         editCourseForm.setFieldsValue({
                           name: course.name,
                           description: course.description,
+                          student_count: course.student_count ?? 0,
                         });
                         setEditCourseModalOpen(true);
                       }}
@@ -351,6 +366,7 @@ export default function AdminMasterPage() {
                       </Typography.Text>
                     }
                   />
+                  <Tag color="blue">{course.student_count ?? 0}명</Tag>
                 </List.Item>
               )}
             />
@@ -403,9 +419,18 @@ export default function AdminMasterPage() {
         destroyOnClose
       >
         <Form form={editCourseForm} layout="vertical" onFinish={handleUpdateCourse} requiredMark={false}>
-          <Form.Item label="과정명" name="name" rules={[{ required: true, message: '과정명을 입력하세요.' }]}>
-            <Input size="large" />
-          </Form.Item>
+          <Row gutter={12}>
+            <Col span={16}>
+              <Form.Item label="과정명" name="name" rules={[{ required: true, message: '과정명을 입력하세요.' }]}>
+                <Input size="large" />
+              </Form.Item>
+            </Col>
+            <Col span={8}>
+              <Form.Item label="과정 인원" name="student_count" rules={[{ required: true, message: '인원을 입력하세요.' }]}>
+                <InputNumber size="large" min={0} style={{ width: '100%' }} addonAfter="명" />
+              </Form.Item>
+            </Col>
+          </Row>
           <Form.Item label="과정 설명" name="description" rules={[{ required: true, message: '과정 설명을 입력하세요.' }]}>
             <TextArea rows={4} maxLength={300} showCount />
           </Form.Item>
