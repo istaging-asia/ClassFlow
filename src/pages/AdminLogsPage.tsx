@@ -140,39 +140,48 @@ export default function AdminLogsPage() {
     [page, pageSize, dateRange, selectedInstructorId, selectedCourseId],
   );
 
-  // 달력용 전체 데이터 조회 (현재 필터 조건 반영)
+  // 달력용 데이터 조회 (활성화된 월 기준 + 앞뒤 7일 버퍼 + 필터 조건 반영)
   const fetchCalendarLogs = useCallback(
-    async (customFilter?: {
-      start_date?: string;
-      end_date?: string;
-      instructor_id?: number;
-      course_id?: number;
-    }) => {
+    async (
+      targetMonth: dayjs.Dayjs = calendarValue,
+      customFilter?: {
+        instructor_id?: number;
+        course_id?: number;
+      },
+    ) => {
       setCalendarLoading(true);
       try {
-        const params = {
-          page: 1,
-          limit: 100,
-          start_date: customFilter
-            ? customFilter.start_date
-            : dateRange
-              ? dateRange[0].format("YYYY-MM-DD")
-              : undefined,
-          end_date: customFilter
-            ? customFilter.end_date
-            : dateRange
-              ? dateRange[1].format("YYYY-MM-DD")
-              : undefined,
-          instructor_id: customFilter
+        // 달력 격자 앞뒤로 걸치는 날짜까지 누락 없이 커버하기 위해 7일 여유 범위 적용
+        const startDate = targetMonth
+          .startOf("month")
+          .subtract(7, "day")
+          .format("YYYY-MM-DD");
+        const endDate = targetMonth
+          .endOf("month")
+          .add(7, "day")
+          .format("YYYY-MM-DD");
+
+        const instructorId =
+          customFilter && "instructor_id" in customFilter
             ? customFilter.instructor_id
             : selectedInstructorId !== "all"
               ? selectedInstructorId
-              : undefined,
-          course_id: customFilter
+              : undefined;
+
+        const courseId =
+          customFilter && "course_id" in customFilter
             ? customFilter.course_id
             : selectedCourseId !== "all"
               ? selectedCourseId
-              : undefined,
+              : undefined;
+
+        const params = {
+          page: 1,
+          limit: 500,
+          start_date: startDate,
+          end_date: endDate,
+          instructor_id: instructorId,
+          course_id: courseId,
         };
         const res = await logsApi.adminSearchLogs(params);
         setCalendarLogs(res.data);
@@ -182,7 +191,7 @@ export default function AdminLogsPage() {
         setCalendarLoading(false);
       }
     },
-    [dateRange, selectedInstructorId, selectedCourseId],
+    [calendarValue, selectedInstructorId, selectedCourseId],
   );
 
   useEffect(() => {
@@ -190,8 +199,8 @@ export default function AdminLogsPage() {
   }, [fetchLogs, page, pageSize]);
 
   useEffect(() => {
-    fetchCalendarLogs();
-  }, [fetchCalendarLogs]);
+    fetchCalendarLogs(calendarValue);
+  }, [calendarValue, selectedInstructorId, selectedCourseId]);
 
   // 날짜별 일지 매핑 맵 (YYYY-MM-DD -> LectureLog[])
   const logsByDate = useMemo(() => {
@@ -218,7 +227,12 @@ export default function AdminLogsPage() {
   const handleSearch = () => {
     setPage(1);
     fetchLogs(1, pageSize);
-    fetchCalendarLogs();
+    if (dateRange && dateRange[0]) {
+      setCalendarValue(dateRange[0]);
+      fetchCalendarLogs(dateRange[0]);
+    } else {
+      fetchCalendarLogs(calendarValue);
+    }
   };
 
   const handleResetFilter = () => {
@@ -234,7 +248,10 @@ export default function AdminLogsPage() {
       course_id: undefined,
     };
     fetchLogs(1, pageSize, emptyFilter);
-    fetchCalendarLogs(emptyFilter);
+    fetchCalendarLogs(calendarValue, {
+      instructor_id: undefined,
+      course_id: undefined,
+    });
   };
 
   const handleExportExcel = async () => {
@@ -433,8 +450,11 @@ export default function AdminLogsPage() {
       title: "작성 일시",
       dataIndex: "created_at",
       key: "created_at",
-      width: 140,
-      render: (v) => formatCreatedAt(v),
+      width: 165,
+      align: "center",
+      render: (v) => (
+        <span style={{ whiteSpace: "nowrap" }}>{formatCreatedAt(v)}</span>
+      ),
     },
     {
       title: "관리",
