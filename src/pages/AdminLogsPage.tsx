@@ -37,6 +37,14 @@ import PageHeader from "../components/PageHeader";
 
 const { RangePicker } = DatePicker;
 
+const formatCreatedAt = (v?: string | null) => {
+  if (!v) return "-";
+  const hasTimezone = v.endsWith("Z") || /[+-]\d{2}:\d{2}$/.test(v);
+  const normalized = hasTimezone ? v : `${v}Z`;
+  const parsed = dayjs(normalized);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DD HH:mm") : "-";
+};
+
 export default function AdminLogsPage() {
   const [logs, setLogs] = useState<LectureLog[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -132,39 +140,48 @@ export default function AdminLogsPage() {
     [page, pageSize, dateRange, selectedInstructorId, selectedCourseId],
   );
 
-  // 달력용 전체 데이터 조회 (현재 필터 조건 반영)
+  // 달력용 데이터 조회 (활성화된 월 기준 + 앞뒤 7일 버퍼 + 필터 조건 반영)
   const fetchCalendarLogs = useCallback(
-    async (customFilter?: {
-      start_date?: string;
-      end_date?: string;
-      instructor_id?: number;
-      course_id?: number;
-    }) => {
+    async (
+      targetMonth: dayjs.Dayjs = calendarValue,
+      customFilter?: {
+        instructor_id?: number;
+        course_id?: number;
+      },
+    ) => {
       setCalendarLoading(true);
       try {
-        const params = {
-          page: 1,
-          limit: 100,
-          start_date: customFilter
-            ? customFilter.start_date
-            : dateRange
-              ? dateRange[0].format("YYYY-MM-DD")
-              : undefined,
-          end_date: customFilter
-            ? customFilter.end_date
-            : dateRange
-              ? dateRange[1].format("YYYY-MM-DD")
-              : undefined,
-          instructor_id: customFilter
+        // 달력 격자 앞뒤로 걸치는 날짜까지 누락 없이 커버하기 위해 7일 여유 범위 적용
+        const startDate = targetMonth
+          .startOf("month")
+          .subtract(7, "day")
+          .format("YYYY-MM-DD");
+        const endDate = targetMonth
+          .endOf("month")
+          .add(7, "day")
+          .format("YYYY-MM-DD");
+
+        const instructorId =
+          customFilter && "instructor_id" in customFilter
             ? customFilter.instructor_id
             : selectedInstructorId !== "all"
               ? selectedInstructorId
-              : undefined,
-          course_id: customFilter
+              : undefined;
+
+        const courseId =
+          customFilter && "course_id" in customFilter
             ? customFilter.course_id
             : selectedCourseId !== "all"
               ? selectedCourseId
-              : undefined,
+              : undefined;
+
+        const params = {
+          page: 1,
+          limit: 500,
+          start_date: startDate,
+          end_date: endDate,
+          instructor_id: instructorId,
+          course_id: courseId,
         };
         const res = await logsApi.adminSearchLogs(params);
         setCalendarLogs(res.data);
@@ -174,7 +191,7 @@ export default function AdminLogsPage() {
         setCalendarLoading(false);
       }
     },
-    [dateRange, selectedInstructorId, selectedCourseId],
+    [calendarValue, selectedInstructorId, selectedCourseId],
   );
 
   useEffect(() => {
@@ -182,8 +199,8 @@ export default function AdminLogsPage() {
   }, [fetchLogs, page, pageSize]);
 
   useEffect(() => {
-    fetchCalendarLogs();
-  }, [fetchCalendarLogs]);
+    fetchCalendarLogs(calendarValue);
+  }, [calendarValue, selectedInstructorId, selectedCourseId]);
 
   // 날짜별 일지 매핑 맵 (YYYY-MM-DD -> LectureLog[])
   const logsByDate = useMemo(() => {
@@ -210,7 +227,12 @@ export default function AdminLogsPage() {
   const handleSearch = () => {
     setPage(1);
     fetchLogs(1, pageSize);
-    fetchCalendarLogs();
+    if (dateRange && dateRange[0]) {
+      setCalendarValue(dateRange[0]);
+      fetchCalendarLogs(dateRange[0]);
+    } else {
+      fetchCalendarLogs(calendarValue);
+    }
   };
 
   const handleResetFilter = () => {
@@ -226,7 +248,10 @@ export default function AdminLogsPage() {
       course_id: undefined,
     };
     fetchLogs(1, pageSize, emptyFilter);
-    fetchCalendarLogs(emptyFilter);
+    fetchCalendarLogs(calendarValue, {
+      instructor_id: undefined,
+      course_id: undefined,
+    });
   };
 
   const handleExportExcel = async () => {
@@ -248,11 +273,31 @@ export default function AdminLogsPage() {
     }
   };
 
+  const courseOptions = useMemo(() => {
+    return courses.map((c) => ({
+      value: c.name,
+      label: (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span>{c.name}</span>
+          <span style={{ color: "#8c8c9a", fontSize: 12 }}>{c.student_count || 0}명</span>
+        </div>
+      ),
+    }));
+  }, [courses]);
+
+  const handleEditCourseChange = (value?: string) => {
+    if (!value) return;
+    const matched = courses.find((c) => c.name === value);
+    if (matched && matched.student_count && matched.student_count > 0) {
+      editForm.setFieldsValue({ student_count: matched.student_count });
+    }
+  };
+
   const handleOpenEdit = (log: LectureLog) => {
     setEditingLog(log);
     editForm.setFieldsValue({
       date: dayjs(log.date),
-      course_name: [log.course_name],
+      course_name: log.course_name,
       total_hours: log.total_hours,
       student_count: log.student_count,
       content: log.content,
@@ -262,9 +307,9 @@ export default function AdminLogsPage() {
 
   const handleUpdate = async (values: any) => {
     if (!editingLog) return;
-    const courseValue = Array.isArray(values.course_name)
+    const courseValue = (Array.isArray(values.course_name)
       ? values.course_name[0]
-      : values.course_name;
+      : values.course_name || "").trim();
     const matchedCourse = courses.find((c) => c.name === courseValue);
 
     const payload: LogUpdateParams = {
@@ -405,8 +450,11 @@ export default function AdminLogsPage() {
       title: "작성 일시",
       dataIndex: "created_at",
       key: "created_at",
-      width: 140,
-      render: (v) => (v ? dayjs(v).format("YYYY-MM-DD HH:mm") : "-"),
+      width: 165,
+      align: "center",
+      render: (v) => (
+        <span style={{ whiteSpace: "nowrap" }}>{formatCreatedAt(v)}</span>
+      ),
     },
     {
       title: "관리",
@@ -654,14 +702,18 @@ export default function AdminLogsPage() {
           <Form.Item
             label="과정명"
             name="course_name"
-            rules={[{ required: true, message: "과정명을 입력하세요." }]}
+            rules={[{ required: true, message: "과정을 선택하세요." }]}
           >
             <Select
+              showSearch
+              allowClear
               size="large"
-              placeholder="과정 선택 또는 직접 입력"
-              mode="tags"
-              maxCount={1}
-              options={courses.map((c) => ({ value: c.name, label: c.name }))}
+              placeholder="과정을 선택하세요"
+              options={courseOptions}
+              onChange={handleEditCourseChange}
+              filterOption={(input, option) =>
+                String(option?.value || "").toLowerCase().includes(input.toLowerCase())
+              }
             />
           </Form.Item>
 

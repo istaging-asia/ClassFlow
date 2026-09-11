@@ -21,6 +21,7 @@ export interface Course {
   description?: string | null;
   thumbnail_url?: string | null;
   color: string;
+  student_count?: number;
   is_active: boolean;
   created_at: string;
   updated_at: string;
