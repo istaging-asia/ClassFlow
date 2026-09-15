@@ -66,9 +66,13 @@ export default function MyLogsPage() {
     }
   }, []);
 
+  /* 09.15 변경 사항
+  수정 전 : 전체 과정 조회
+  후 : my 과정 목록 조회 (나에게 배정된 강의만 조회)
+  */
   const fetchCourses = useCallback(async () => {
     try {
-      const data = await coursesApi.getCourses();
+      const data = await coursesApi.getMyCourses();
       setCourses(data);
     } catch (err) {
       console.error(err);

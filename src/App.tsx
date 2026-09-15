@@ -15,7 +15,7 @@ import AdminMasterPage from './pages/AdminMasterPage';
 
 export default function App() {
   return (
-    <ConfigProvider theme={classflowTheme} locale={koKR}>
+    <ConfigProvider theme={classflowTheme} locale={koKR} modal={{ centered: true }}>
       <AuthProvider>
         <HashRouter>
           <Routes>

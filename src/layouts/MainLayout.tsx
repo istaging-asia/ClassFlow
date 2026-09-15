@@ -20,8 +20,8 @@ type Role = 'instructor' | 'admin';
 
 const instructorMenuItems: MenuProps['items'] = [
   { key: '/instructor/logs', icon: <FormOutlined />, label: '수업 일지 작성' },
-  { key: '/instructor/instructors', icon: <TeamOutlined />, label: '강사 소개' },
-  { key: '/instructor/courses', icon: <ReadOutlined />, label: '과정 소개' },
+  // { key: '/instructor/instructors', icon: <TeamOutlined />, label: '강사 소개' },
+  // { key: '/instructor/courses', icon: <ReadOutlined />, label: '과정 소개' },
   { key: '/instructor/profile', icon: <UserOutlined />, label: '내 프로필' },
 ];
 
