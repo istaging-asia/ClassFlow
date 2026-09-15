@@ -3,6 +3,7 @@ import {
   Avatar,
   Button,
   Card,
+  Checkbox,
   Col,
   Form,
   Input,
@@ -12,6 +13,7 @@ import {
   Popconfirm,
   Row,
   Select,
+  Space,
   Tag,
   Typography,
   message,
@@ -44,6 +46,13 @@ export default function AdminMasterPage() {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [editCourseModalOpen, setEditCourseModalOpen] = useState(false);
   const [editCourseForm] = Form.useForm();
+
+  // 강사 담당 과정 배정 모달
+  const [assigningInst, setAssigningInst] = useState<User | null>(null);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedCourseIds, setSelectedCourseIds] = useState<number[]>([]);
+  const [assignSearch, setAssignSearch] = useState('');
+  const [loadingAssign, setLoadingAssign] = useState(false);
 
   const fetchInstructors = useCallback(async () => {
     setLoadingInst(true);
@@ -158,6 +167,63 @@ export default function AdminMasterPage() {
     }
   };
 
+  // 과정 배정 click 시 모달 열기 => 특정 강사에게 할당된 과정 목록 조회 -> 체크 상태 구성
+  const openAssignModal = async (inst: User) => {
+    console.log('강사 정보 : ', inst);
+    // assigningInst: 지금 배정 중인 강사 (저장 시 instructor_id, 모달 제목용)
+    setAssigningInst(inst);
+    // assignSearch: 모달 안 과정명 검색어 초기화 (프론트 필터용, API 무관)
+    setAssignSearch('');
+    // selectedCourseIds: 조회 전 체크 상태를 비워 이전 강사 선택값 잔존 방지
+    setSelectedCourseIds([]);
+    // assignModalOpen: 배정 모달 열기
+    setAssignModalOpen(true);
+    // loadingAssign: 배정 목록 조회 중 로딩 표시
+    setLoadingAssign(true);
+    try {
+      // API GET getInstructorCourses: 해당 강사에게 이미 배정된 과정 목록 조회
+      const assigned = await coursesApi.getInstructorCourses(inst.id);
+      console.log('특정 강사에게 할당된 과정 목록 : ', assigned);
+      // selectedCourseIds: 조회된 과정 id로 체크박스 초기 선택 구성
+      setSelectedCourseIds(assigned.map((c) => c.id));
+    } catch (err) {
+      console.error('특정 강사에게 할당된 과정 목록 조회 실패 : ', err);
+      // selectedCourseIds: 조회 실패 시 빈 선택으로 모달만 유지
+      setSelectedCourseIds([]);
+    } finally {
+      // loadingAssign: 조회 종료 후 로딩 해제
+      setLoadingAssign(false);
+    }
+  };
+
+  // 과정 배정 저장 처리
+  const handleSaveAssign = async () => {
+    // assigningInst: 배정 대상 강사가 없으면 저장하지 않음
+    console.log('배정 대상 강사 : ', assigningInst);
+    console.log('체크된 과정 id 목록 : ', selectedCourseIds);
+    if (!assigningInst) return;
+    try {
+      // API PUT assignInstructorCourses: 체크된 과정 id 배열을 해당 강사 배정으로 저장
+      // assigningInst.id → instructor_id, selectedCourseIds → course_ids
+      await coursesApi.assignInstructorCourses(
+        assigningInst.id,
+        selectedCourseIds,
+      );
+      message.success('과정 배정이 저장되었습니다.');
+    } catch (err) {
+      console.error('과정 배정 저장 실패 : ', err);
+      message.error('과정 배정 저장에 실패했습니다.');
+    }
+    // assignModalOpen / assigningInst: 저장 시도 후 모달 닫고 배정 대상 초기화
+    setAssignModalOpen(false);
+    setAssigningInst(null);
+  };
+
+  // assignSearch + courses(전체 과정): 검색어로 모달 체크박스 목록만 프론트 필터
+  const filteredAssignCourses = courses.filter((c) =>
+    c.name.toLowerCase().includes(assignSearch.trim().toLowerCase()),
+  );
+
   return (
     <div>
       <PageHeader title="마스터 관리" description="강사 계정을 발급하고 교육 과정 마스터 데이터를 관리합니다." />
@@ -237,6 +303,15 @@ export default function AdminMasterPage() {
               renderItem={(inst) => (
                 <List.Item
                   actions={[
+                    <Button
+                      key="assign"
+                      type="text"
+                      size="small"
+                      icon={<ReadOutlined />}
+                      onClick={() => openAssignModal(inst)}
+                    >
+                      과정 배정
+                    </Button>,
                     <Button
                       key="edit"
                       type="text"
@@ -441,6 +516,68 @@ export default function AdminMasterPage() {
             </Button>
           </div>
         </Form>
+      </Modal>
+
+      {/* 강사 담당 과정 배정 모달 */}
+      <Modal
+        title={
+          assigningInst
+            ? `${assigningInst.name} · 담당 과정 배정`
+            : '담당 과정 배정'
+        }
+        open={assignModalOpen}
+        onCancel={() => {
+          setAssignModalOpen(false);
+          setAssigningInst(null);
+        }}
+        onOk={handleSaveAssign}
+        okText={`저장 (${selectedCourseIds.length}개)`}
+        destroyOnClose
+      >
+        <Typography.Paragraph type="secondary" style={{ marginBottom: 12 }}>
+          선택한 과정만 해당 강사의 수업 일지 작성 화면에서 과정명으로
+          나타납니다.
+        </Typography.Paragraph>
+        <Input
+          allowClear
+          placeholder="과정명 검색"
+          value={assignSearch}
+          onChange={(e) => setAssignSearch(e.target.value)}
+          style={{ marginBottom: 12 }}
+        />
+        <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+          {loadingAssign ? (
+            <Typography.Text type="secondary">불러오는 중…</Typography.Text>
+          ) : filteredAssignCourses.length === 0 ? (
+            <Typography.Text type="secondary">
+              배정할 과정이 없습니다.
+            </Typography.Text>
+          ) : (
+            <Space direction="vertical" style={{ width: '100%' }} size={8}>
+              {filteredAssignCourses.map((course) => (
+                <Checkbox
+                  key={course.id}
+                  checked={selectedCourseIds.includes(course.id)}
+                  onChange={(e) => {
+                    setSelectedCourseIds((prev) =>
+                      e.target.checked
+                        ? [...prev, course.id]
+                        : prev.filter((id) => id !== course.id),
+                    );
+                  }}
+                >
+                  <span>{course.name}</span>
+                  <Typography.Text
+                    type="secondary"
+                    style={{ marginLeft: 8, fontSize: 12 }}
+                  >
+                    {course.student_count ?? 0}명
+                  </Typography.Text>
+                </Checkbox>
+              ))}
+            </Space>
+          )}
+        </div>
       </Modal>
     </div>
   );
