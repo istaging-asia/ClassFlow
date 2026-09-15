@@ -3,7 +3,6 @@ import {
   Avatar,
   Button,
   Card,
-  Checkbox,
   Col,
   Form,
   Input,
@@ -51,7 +50,6 @@ export default function AdminMasterPage() {
   const [assigningInst, setAssigningInst] = useState<User | null>(null);
   const [assignModalOpen, setAssignModalOpen] = useState(false);
   const [selectedCourseIds, setSelectedCourseIds] = useState<number[]>([]);
-  const [assignSearch, setAssignSearch] = useState('');
   const [loadingAssign, setLoadingAssign] = useState(false);
 
   const fetchInstructors = useCallback(async () => {
@@ -167,14 +165,12 @@ export default function AdminMasterPage() {
     }
   };
 
-  // 과정 배정 click 시 모달 열기 => 특정 강사에게 할당된 과정 목록 조회 -> 체크 상태 구성
+  // 과정 배정 click 시 모달 열기 => 특정 강사에게 할당된 과정 목록 조회 -> 선택 목록 구성
   const openAssignModal = async (inst: User) => {
     console.log('강사 정보 : ', inst);
     // assigningInst: 지금 배정 중인 강사 (저장 시 instructor_id, 모달 제목용)
     setAssigningInst(inst);
-    // assignSearch: 모달 안 과정명 검색어 초기화 (프론트 필터용, API 무관)
-    setAssignSearch('');
-    // selectedCourseIds: 조회 전 체크 상태를 비워 이전 강사 선택값 잔존 방지
+    // selectedCourseIds: 조회 전 선택 목록을 비워 이전 강사 선택값 잔존 방지
     setSelectedCourseIds([]);
     // assignModalOpen: 배정 모달 열기
     setAssignModalOpen(true);
@@ -184,7 +180,7 @@ export default function AdminMasterPage() {
       // API GET getInstructorCourses: 해당 강사에게 이미 배정된 과정 목록 조회
       const assigned = await coursesApi.getInstructorCourses(inst.id);
       console.log('특정 강사에게 할당된 과정 목록 : ', assigned);
-      // selectedCourseIds: 조회된 과정 id로 체크박스 초기 선택 구성
+      // selectedCourseIds: 조회된 과정 id로 선택 목록 초기 구성
       setSelectedCourseIds(assigned.map((c) => c.id));
     } catch (err) {
       console.error('특정 강사에게 할당된 과정 목록 조회 실패 : ', err);
@@ -200,10 +196,10 @@ export default function AdminMasterPage() {
   const handleSaveAssign = async () => {
     // assigningInst: 배정 대상 강사가 없으면 저장하지 않음
     console.log('배정 대상 강사 : ', assigningInst);
-    console.log('체크된 과정 id 목록 : ', selectedCourseIds);
+    console.log('선택된 과정 id 목록 : ', selectedCourseIds);
     if (!assigningInst) return;
     try {
-      // API PUT assignInstructorCourses: 체크된 과정 id 배열을 해당 강사 배정으로 저장
+      // API PUT assignInstructorCourses: 선택된 과정 id 배열을 해당 강사 배정으로 저장
       // assigningInst.id → instructor_id, selectedCourseIds → course_ids
       await coursesApi.assignInstructorCourses(
         assigningInst.id,
@@ -219,10 +215,29 @@ export default function AdminMasterPage() {
     setAssigningInst(null);
   };
 
-  // assignSearch + courses(전체 과정): 검색어로 모달 체크박스 목록만 프론트 필터
-  const filteredAssignCourses = courses.filter((c) =>
-    c.name.toLowerCase().includes(assignSearch.trim().toLowerCase()),
-  );
+  // 미배정 과정 리스트에서 바로 추가
+  const handleAddAssignCourse = (courseId: number) => {
+    setSelectedCourseIds((prev) =>
+      prev.includes(courseId) ? prev : [...prev, courseId],
+    );
+  };
+
+  // 선택 목록에서 과정 제거
+  const handleRemoveAssignCourse = (courseId: number) => {
+    setSelectedCourseIds((prev) => prev.filter((id) => id !== courseId));
+  };
+
+  // Select 드롭다운 옵션: 아직 선택되지 않은 과정 (과정명 + 추가 버튼)
+  const assignCourseOptions = courses
+    .filter((c) => !selectedCourseIds.includes(c.id))
+    .map((c) => ({
+      value: c.id,
+      label: c.name,
+      student_count: c.student_count ?? 0,
+    }));
+
+  // selectedCourseIds + courses: 이미 배정(선택)된 과정만 아래 리스트에 표시
+  const selectedCourses = courses.filter((c) => selectedCourseIds.includes(c.id));
 
   return (
     <div>
@@ -538,42 +553,82 @@ export default function AdminMasterPage() {
           선택한 과정만 해당 강사의 수업 일지 작성 화면에서 과정명으로
           나타납니다.
         </Typography.Paragraph>
-        <Input
-          allowClear
+        <Select
+          showSearch
           placeholder="과정명 검색"
-          value={assignSearch}
-          onChange={(e) => setAssignSearch(e.target.value)}
-          style={{ marginBottom: 12 }}
+          value={null}
+          options={assignCourseOptions}
+          onSelect={(courseId) => {
+            if(courseId == null) return;
+            handleAddAssignCourse(courseId);
+          }}
+          filterOption={(input, option) =>
+            String(option?.label || '').toLowerCase().includes(input.toLowerCase())
+          }
+          optionRender={(option) => (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+              }}
+            >
+              <div>
+                <span>{option.data.label}</span>
+                <Typography.Text
+                  type="secondary"
+                  style={{ marginLeft: 8, fontSize: 12 }}
+                >
+                  {option.data.student_count}명
+                </Typography.Text>
+              </div>
+              <Button type="link" size="small" icon={<PlusOutlined />}>
+                추가
+              </Button>
+            </div>
+          )}
+          style={{ width: '100%', marginBottom: 12 }}
         />
         <div style={{ maxHeight: 360, overflowY: 'auto' }}>
           {loadingAssign ? (
             <Typography.Text type="secondary">불러오는 중…</Typography.Text>
-          ) : filteredAssignCourses.length === 0 ? (
+          ) : selectedCourses.length === 0 ? (
             <Typography.Text type="secondary">
-              배정할 과정이 없습니다.
+              배정된 과정이 없습니다. 위에서 과정을 추가하세요.
             </Typography.Text>
           ) : (
             <Space direction="vertical" style={{ width: '100%' }} size={8}>
-              {filteredAssignCourses.map((course) => (
-                <Checkbox
+              {selectedCourses.map((course) => (
+                <div
                   key={course.id}
-                  checked={selectedCourseIds.includes(course.id)}
-                  onChange={(e) => {
-                    setSelectedCourseIds((prev) =>
-                      e.target.checked
-                        ? [...prev, course.id]
-                        : prev.filter((id) => id !== course.id),
-                    );
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '8px 12px',
+                    border: '1px solid #EFEFF6',
+                    borderRadius: 8,
+                    background: '#FAFAFD',
                   }}
                 >
-                  <span>{course.name}</span>
-                  <Typography.Text
-                    type="secondary"
-                    style={{ marginLeft: 8, fontSize: 12 }}
-                  >
-                    {course.student_count ?? 0}명
-                  </Typography.Text>
-                </Checkbox>
+                  <div>
+                    <span>{course.name}</span>
+                    <Typography.Text
+                      type="secondary"
+                      style={{ marginLeft: 8, fontSize: 12 }}
+                    >
+                      {course.student_count ?? 0}명
+                    </Typography.Text>
+                  </div>
+                  <Button
+                    type="text"
+                    size="small"
+                    danger
+                    icon={<DeleteOutlined />}
+                    onClick={() => handleRemoveAssignCourse(course.id)}
+                  />
+                </div>
               ))}
             </Space>
           )}
