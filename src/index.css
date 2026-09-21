@@ -285,4 +285,19 @@ body {
   line-height: 1.2;
 }
 
+.instructor-filter-header .ant-table-filter-column {
+  align-items: center;
+  justify-content: center;
+}
+
+.instructor-filter-header .ant-table-filter-trigger {
+  width: 30px;
+  height: 30px;
+  min-width: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
