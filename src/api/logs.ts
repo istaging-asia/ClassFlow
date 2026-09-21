@@ -72,12 +72,14 @@ export const logsApi = {
     });
     
     // 파일 다운로드 브라우저 트리거
-    const blob = new Blob([res.data], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([res.data], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
     const url = window.URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
     const nowStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    link.setAttribute('download', `classflow_logs_${nowStr}.csv`);
+    link.setAttribute('download', `classflow_logs_${nowStr}.xlsx`);
     document.body.appendChild(link);
     link.click();
     link.remove();

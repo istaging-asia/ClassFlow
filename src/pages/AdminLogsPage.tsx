@@ -265,7 +265,7 @@ export default function AdminLogsPage() {
         course_id: selectedCourseId !== "all" ? selectedCourseId : undefined,
       };
       await logsApi.exportAdminLogs(params);
-      message.success("엑셀(CSV) 파일 다운로드가 완료되었습니다.");
+      message.success("엑셀 파일 다운로드가 완료되었습니다.");
     } catch {
       message.error("엑셀 다운로드에 실패했습니다.");
     } finally {
