@@ -420,6 +420,11 @@ export default function AdminLogsPage() {
       dataIndex: "instructor_name",
       key: "instructor_name",
       width: 100,
+      sorter: (a, b) =>
+        (a.instructor_name || "미지정").localeCompare(
+          b.instructor_name || "미지정",
+          "ko",
+        ),
       render: (v) => <Tag color="blue">{v || "미지정"}</Tag>,
     },
     {
