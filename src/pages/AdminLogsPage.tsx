@@ -425,7 +425,19 @@ export default function AdminLogsPage() {
           b.instructor_name || "미지정",
           "ko",
         ),
-      render: (v) => <Tag color="blue">{v || "미지정"}</Tag>,
+      render: (v, record) => (
+        <Tag
+          color="blue"
+          style={{ cursor: "pointer" }}
+          onClick={() => {
+            if (!record.instructor_id) return;
+            setSelectedInstructorId(record.instructor_id);
+            setPage(1);
+          }}
+        >
+          {v || "미지정"}
+        </Tag>
+      ),
     },
     {
       title: "총 수업 시간",
