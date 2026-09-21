@@ -420,24 +420,12 @@ export default function AdminLogsPage() {
       dataIndex: "instructor_name",
       key: "instructor_name",
       width: 100,
-      sorter: (a, b) =>
-        (a.instructor_name || "미지정").localeCompare(
-          b.instructor_name || "미지정",
-          "ko",
-        ),
-      render: (v, record) => (
-        <Tag
-          color="blue"
-          style={{ cursor: "pointer" }}
-          onClick={() => {
-            if (!record.instructor_id) return;
-            setSelectedInstructorId(record.instructor_id);
-            setPage(1);
-          }}
-        >
-          {v || "미지정"}
-        </Tag>
-      ),
+      filterMultiple: false,
+      filters: instructors.map((i) => ({ text: i.name, value: i.id })),
+      filteredValue:
+        selectedInstructorId === "all" ? null : [selectedInstructorId],
+      onHeaderCell: () => ({ className: "instructor-filter-header" }),
+      render: (v) => <Tag color="blue">{v || "미지정"}</Tag>,
     },
     {
       title: "총 수업 시간",
@@ -681,14 +669,25 @@ export default function AdminLogsPage() {
           dataSource={logs}
           loading={loading}
           scroll={{ x: 1000 }}
+          onChange={(pagination, filters) => {
+            const raw = filters.instructor_name?.[0];
+            const nextInstructor: number | "all" =
+              raw === undefined ? "all" : Number(raw);
+
+            if (nextInstructor !== selectedInstructorId) {
+              setSelectedInstructorId(nextInstructor);
+              setPage(1);
+            } else if (pagination.current) {
+              setPage(pagination.current);
+            }
+            if (pagination.pageSize) {
+              setPageSize(pagination.pageSize);
+            }
+          }}
           pagination={{
             current: page,
             pageSize: pageSize,
             total: totalCount,
-            onChange: (p, s) => {
-              setPage(p);
-              setPageSize(s);
-            },
             showTotal: (t) => `총 ${t}건`,
           }}
         />
