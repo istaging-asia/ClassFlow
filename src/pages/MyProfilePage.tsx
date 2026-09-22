@@ -91,7 +91,7 @@ export default function MyProfilePage() {
             <Form form={form} layout="vertical" requiredMark={false} onFinish={handleSave}>
               <Row gutter={16}>
                 <Col xs={24} sm={12}>
-                  <Form.Item label="강사명" name="name">
+                  <Form.Item label={user.role === 'ADMIN' ? '관리자명' : '강사명'} name="name">
                     <Input size="large" disabled />
                   </Form.Item>
                 </Col>

@@ -30,6 +30,7 @@ const adminMenuItems: MenuProps['items'] = [
   { key: '/admin/instructors', icon: <TeamOutlined />, label: '강사 소개' },
   { key: '/admin/courses', icon: <ReadOutlined />, label: '과정 소개' },
   { key: '/admin/master', icon: <SettingOutlined />, label: '마스터 관리' },
+  { key: '/admin/profile', icon: <UserOutlined />, label: '내 프로필' },
 ];
 
 export default function MainLayout({ role }: { role: Role }) {
@@ -49,6 +50,15 @@ export default function MainLayout({ role }: { role: Role }) {
   };
 
   const userMenu: MenuProps['items'] = [
+    {
+      key: 'profile',
+      icon: <UserOutlined />,
+      label: '내 프로필',
+      onClick: () => navigate(role === 'admin' ? '/admin/profile' : '/instructor/profile'),
+    },
+    {
+      type: 'divider',
+    },
     {
       key: 'logout',
       icon: <LogoutOutlined />,
