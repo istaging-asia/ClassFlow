@@ -298,9 +298,11 @@ export default function AdminLogsPage() {
     editForm.setFieldsValue({
       date: dayjs(log.date),
       course_name: log.course_name,
+      title: log.title || "",
       total_hours: log.total_hours,
       student_count: log.student_count,
       content: log.content,
+      special_notes: log.special_notes || "",
     });
     setEditModalOpen(true);
   };
@@ -316,9 +318,11 @@ export default function AdminLogsPage() {
       date: values.date.format("YYYY-MM-DD"),
       course_id: matchedCourse ? matchedCourse.id : null,
       course_name: courseValue,
+      title: values.title !== undefined ? (values.title.trim() || null) : undefined,
       total_hours: values.total_hours,
       student_count: values.student_count || 0,
       content: values.content,
+      special_notes: values.special_notes !== undefined ? (values.special_notes.trim() || null) : undefined,
     };
 
     setEditSubmitting(true);
@@ -412,7 +416,7 @@ export default function AdminLogsPage() {
       title: "수업 일자",
       dataIndex: "date",
       key: "date",
-      width: 120,
+      width: 110,
       sorter: (a, b) => (a.date < b.date ? -1 : 1),
     },
     {
@@ -427,15 +431,28 @@ export default function AdminLogsPage() {
       onHeaderCell: () => ({ className: "instructor-filter-header" }),
       render: (v) => <Tag color="blue">{v || "미지정"}</Tag>,
     },
+    { title: "과정명", dataIndex: "course_name", key: "course_name", width: 150 },
+    {
+      title: "수업 제목",
+      dataIndex: "title",
+      key: "title",
+      width: 150,
+      ellipsis: true,
+      render: (v) =>
+        v ? (
+          <span style={{ fontWeight: 600, color: "#2B2B36" }}>{v}</span>
+        ) : (
+          <span style={{ color: "#bbb" }}>-</span>
+        ),
+    },
     {
       title: "총 수업 시간",
       dataIndex: "total_hours",
       key: "total_hours",
-      width: 120,
+      width: 105,
       align: "center",
       render: (v) => `${v}시간`,
     },
-    { title: "과정명", dataIndex: "course_name", key: "course_name" },
     {
       title: "참여 인원",
       dataIndex: "student_count",
@@ -452,10 +469,23 @@ export default function AdminLogsPage() {
       render: (v) => <span style={{ color: "#666" }}>{v}</span>,
     },
     {
+      title: "특이사항",
+      dataIndex: "special_notes",
+      key: "special_notes",
+      width: 130,
+      ellipsis: true,
+      render: (v) =>
+        v ? (
+          <span style={{ color: "#e67700" }}>{v}</span>
+        ) : (
+          <span style={{ color: "#bbb" }}>-</span>
+        ),
+    },
+    {
       title: "작성 일시",
       dataIndex: "created_at",
       key: "created_at",
-      width: 165,
+      width: 150,
       align: "center",
       render: (v) => (
         <span style={{ whiteSpace: "nowrap" }}>{formatCreatedAt(v)}</span>
@@ -734,6 +764,14 @@ export default function AdminLogsPage() {
           </Form.Item>
 
           <Form.Item
+            label="수업 제목"
+            name="title"
+            rules={[{ max: 255, message: "수업 제목은 최대 255자까지 입력 가능합니다." }]}
+          >
+            <Input size="large" placeholder="수업 주제/제목을 입력하세요 (예: React 컴포넌트 실습)" maxLength={255} />
+          </Form.Item>
+
+          <Form.Item
             label="총 수업 시간"
             name="total_hours"
             rules={[
@@ -774,9 +812,20 @@ export default function AdminLogsPage() {
           <Form.Item
             label="수업 내용"
             name="content"
-            rules={[{ required: true, message: "수업 내용을 입력하세요." }]}
+            rules={[
+              { required: true, message: "수업 내용을 입력하세요." },
+              { max: 1500, message: "수업 내용은 최대 1,500자까지 입력 가능합니다." },
+            ]}
           >
-            <Input.TextArea rows={4} maxLength={500} showCount />
+            <Input.TextArea rows={5} maxLength={1500} showCount />
+          </Form.Item>
+
+          <Form.Item
+            label="특이사항"
+            name="special_notes"
+            rules={[{ max: 300, message: "특이사항은 최대 300자까지 입력 가능합니다." }]}
+          >
+            <Input.TextArea rows={3} maxLength={300} showCount placeholder="학생 질문 사항, 강의실 이슈, 요청사항 등 (선택)" />
           </Form.Item>
 
           <div
@@ -827,15 +876,28 @@ export default function AdminLogsPage() {
               title: "강사명",
               dataIndex: "instructor_name",
               key: "instructor_name",
-              width: 100,
+              width: 90,
               render: (v) => <Tag color="blue">{v || "미지정"}</Tag>,
             },
-            { title: "과정명", dataIndex: "course_name", key: "course_name" },
+            { title: "과정명", dataIndex: "course_name", key: "course_name", width: 140 },
+            {
+              title: "수업 제목",
+              dataIndex: "title",
+              key: "title",
+              width: 130,
+              ellipsis: true,
+              render: (v) =>
+                v ? (
+                  <span style={{ fontWeight: 600, color: "#2B2B36" }}>{v}</span>
+                ) : (
+                  <span style={{ color: "#bbb" }}>-</span>
+                ),
+            },
             {
               title: "총 수업 시간",
               dataIndex: "total_hours",
               key: "total_hours",
-              width: 120,
+              width: 100,
               align: "center",
               render: (v) => `${v}시간`,
             },
@@ -843,7 +905,7 @@ export default function AdminLogsPage() {
               title: "참여 인원",
               dataIndex: "student_count",
               key: "student_count",
-              width: 90,
+              width: 80,
               align: "center",
               render: (v) => `${v}명`,
             },
@@ -853,6 +915,19 @@ export default function AdminLogsPage() {
               key: "content",
               ellipsis: true,
               render: (v) => <span style={{ color: "#666" }}>{v}</span>,
+            },
+            {
+              title: "특이사항",
+              dataIndex: "special_notes",
+              key: "special_notes",
+              width: 120,
+              ellipsis: true,
+              render: (v) =>
+                v ? (
+                  <span style={{ color: "#e67700" }}>{v}</span>
+                ) : (
+                  <span style={{ color: "#bbb" }}>-</span>
+                ),
             },
             {
               title: "관리",
