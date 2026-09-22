@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Avatar, Button, Card, Col, Form, Input, Modal, Popconfirm, Row, Select, Spin, Typography, message } from 'antd';
+import { Avatar, Button, Card, Col, Form, Input, Modal, Popconfirm, Row, Select, Spin, Tag, Typography, message } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined, PhoneOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { usersApi, type InstructorUpdateParams } from '../api/users';
@@ -11,6 +11,10 @@ export default function InstructorsPage({ role }: { role: 'instructor' | 'admin'
   const [instructors, setInstructors] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
+
+  // 상세 정보 모달 상태
+  const [selectedInst, setSelectedInst] = useState<User | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   // 수정 모달 상태
   const [editingInst, setEditingInst] = useState<User | null>(null);
@@ -36,6 +40,12 @@ export default function InstructorsPage({ role }: { role: 'instructor' | 'admin'
     }, 300);
     return () => clearTimeout(timer);
   }, [search, fetchInstructors]);
+
+  // 강사 상세 정보 모달 오픈
+  const handleOpenDetail = (inst: User) => {
+    setSelectedInst(inst);
+    setDetailModalOpen(true);
+  };
 
   // 강사 정보 수정 모달 오픈
   const handleOpenEdit = (inst: User) => {
@@ -117,22 +127,37 @@ export default function InstructorsPage({ role }: { role: 'instructor' | 'admin'
             <Col xs={24} sm={12} lg={8} key={inst.id}>
               <Card
                 hoverable
-                style={{ height: '100%' }}
+                style={{ height: '100%', cursor: 'pointer' }}
                 styles={{ body: { padding: 20 } }}
+                onClick={() => handleOpenDetail(inst)}
                 actions={
                   role === 'admin'
                     ? [
-                        <EditOutlined key="edit" onClick={() => handleOpenEdit(inst)} />,
-                        <Popconfirm
-                          key="delete"
-                          title="강사 계정을 비활성화/삭제하시겠습니까?"
-                          onConfirm={() => handleDelete(inst.id)}
-                          okText="삭제"
-                          cancelText="취소"
-                          okButtonProps={{ danger: true }}
+                        <span
+                          key="edit"
+                          style={{ display: 'inline-block', width: '100%' }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenEdit(inst);
+                          }}
                         >
-                          <DeleteOutlined style={{ color: '#F5484A' }} />
-                        </Popconfirm>,
+                          <EditOutlined />
+                        </span>,
+                        <span
+                          key="delete"
+                          style={{ display: 'inline-block', width: '100%' }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Popconfirm
+                            title="강사 계정을 비활성화/삭제하시겠습니까?"
+                            onConfirm={() => handleDelete(inst.id)}
+                            okText="삭제"
+                            cancelText="취소"
+                            okButtonProps={{ danger: true }}
+                          >
+                            <DeleteOutlined style={{ color: '#F5484A' }} />
+                          </Popconfirm>
+                        </span>,
                       ]
                     : undefined
                 }
@@ -156,7 +181,14 @@ export default function InstructorsPage({ role }: { role: 'instructor' | 'admin'
                 </div>
                 <Typography.Paragraph
                   type="secondary"
-                  style={{ marginTop: 14, marginBottom: 0, fontSize: 13.5, minHeight: 44 }}
+                  style={{
+                    marginTop: 14,
+                    marginBottom: 0,
+                    fontSize: 13.5,
+                    minHeight: 44,
+                    whiteSpace: 'pre-line',
+                    wordBreak: 'break-word',
+                  }}
                   ellipsis={{ rows: 2 }}
                 >
                   {inst.intro || '등록된 소개글이 없습니다.'}
@@ -166,6 +198,100 @@ export default function InstructorsPage({ role }: { role: 'instructor' | 'admin'
           ))}
         </Row>
       )}
+
+      {/* 강사 상세 정보 모달 */}
+      <Modal
+        title="강사 상세 정보"
+        open={detailModalOpen}
+        onCancel={() => {
+          setDetailModalOpen(false);
+          setSelectedInst(null);
+        }}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            {role === 'admin' && selectedInst && (
+              <Button
+                type="primary"
+                icon={<EditOutlined />}
+                onClick={() => {
+                  const target = selectedInst;
+                  setDetailModalOpen(false);
+                  setSelectedInst(null);
+                  handleOpenEdit(target);
+                }}
+              >
+                수정
+              </Button>
+            )}
+            <Button
+              onClick={() => {
+                setDetailModalOpen(false);
+                setSelectedInst(null);
+              }}
+            >
+              닫기
+            </Button>
+          </div>
+        }
+        destroyOnClose
+      >
+        {selectedInst && (
+          <div style={{ paddingTop: 8 }}>
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 20 }}>
+              <Avatar
+                size={64}
+                style={{
+                  background: selectedInst.color || '#5B5BF6',
+                  fontSize: 24,
+                  fontWeight: 600,
+                  flexShrink: 0,
+                }}
+              >
+                {selectedInst.name[0]}
+              </Avatar>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <Typography.Title level={4} style={{ margin: 0 }}>
+                    {selectedInst.name}
+                  </Typography.Title>
+                  <Tag color={selectedInst.role === 'ADMIN' ? 'purple' : 'blue'}>
+                    {selectedInst.role === 'ADMIN' ? '관리자' : '강사'}
+                  </Tag>
+                </div>
+                <Typography.Text type="secondary" style={{ fontSize: 14, display: 'block', marginTop: 4 }}>
+                  {selectedInst.dept || '소속 미지정'}
+                </Typography.Text>
+                <div style={{ marginTop: 4, color: '#666', fontSize: 13 }}>
+                  <PhoneOutlined style={{ marginRight: 6 }} />
+                  {selectedInst.phone || '연락처 미등록'}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <Typography.Text strong style={{ display: 'block', marginBottom: 8, fontSize: 14 }}>
+                간단 소개글
+              </Typography.Text>
+              <div
+                style={{
+                  background: '#F9FAFC',
+                  padding: '14px 16px',
+                  borderRadius: 8,
+                  border: '1px solid #ECEEF4',
+                  fontSize: 14,
+                  lineHeight: 1.7,
+                  color: selectedInst.intro ? '#333' : '#999',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  minHeight: 80,
+                }}
+              >
+                {selectedInst.intro || '등록된 소개글이 없습니다.'}
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* 강사 정보 수정 모달 */}
       <Modal
