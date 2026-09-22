@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Form, Input, Typography, Divider, message } from 'antd';
+import { Button, Form, Input, Typography, message } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { brandGradient } from '../theme';
@@ -30,10 +30,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFillAccount = (loginId: string, pw: string) => {
-    form.setFieldsValue({ login_id: loginId, password: pw });
   };
 
   return (
@@ -115,7 +111,6 @@ export default function LoginPage() {
             style={{ marginTop: 28 }}
             requiredMark={false}
             onFinish={handleSubmit}
-            initialValues={{ login_id: 'admin', password: 'admin1234!' }}
           >
             <Form.Item
               label="아이디"
@@ -134,16 +129,6 @@ export default function LoginPage() {
             <Button type="primary" size="large" block htmlType="submit" loading={loading}>
               로그인
             </Button>
-
-            <Divider style={{ fontSize: 12, color: '#bbb', margin: '24px 0 16px' }}>테스트 계정 자동 입력</Divider>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <Button block onClick={() => handleFillAccount('inst1', 'pass1234!')}>
-                강사 (김도윤)
-              </Button>
-              <Button block onClick={() => handleFillAccount('admin', 'admin1234!')}>
-                관리자 (admin)
-              </Button>
-            </div>
           </Form>
         </div>
       </div>
