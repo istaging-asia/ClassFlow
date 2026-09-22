@@ -52,6 +52,7 @@ export default function App() {
               <Route path="instructors" element={<InstructorsPage role="admin" />} />
               <Route path="courses" element={<CoursesPage role="admin" />} />
               <Route path="master" element={<AdminMasterPage />} />
+              <Route path="profile" element={<MyProfilePage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/login" replace />} />

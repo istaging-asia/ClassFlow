@@ -26,6 +26,11 @@ export interface InstructorUpdateParams {
   is_active?: boolean;
 }
 
+export interface PasswordChangeParams {
+  current_password: string;
+  new_password: string;
+}
+
 export const usersApi = {
   getInstructors: async (search?: string): Promise<User[]> => {
     const params = search ? { search } : {};
@@ -35,6 +40,11 @@ export const usersApi = {
 
   updateMyProfile: async (params: ProfileUpdateParams): Promise<User> => {
     const res = await apiClient.put<ApiResponse<User>>('/users/me', params);
+    return res.data.data;
+  },
+
+  changePassword: async (params: PasswordChangeParams): Promise<{ user_id: number; changed: boolean }> => {
+    const res = await apiClient.put<ApiResponse<{ user_id: number; changed: boolean }>>('/users/me/password', params);
     return res.data.data;
   },
 
