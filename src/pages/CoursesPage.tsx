@@ -155,7 +155,14 @@ export default function CoursesPage({ role }: { role: 'instructor' | 'admin' }) 
                 </div>
                 <Typography.Paragraph
                   type="secondary"
-                  style={{ marginTop: 8, marginBottom: 0, fontSize: 13.5, minHeight: 40 }}
+                  style={{
+                    marginTop: 8,
+                    marginBottom: 0,
+                    fontSize: 13.5,
+                    minHeight: 40,
+                    whiteSpace: 'pre-line',
+                    wordBreak: 'break-word',
+                  }}
                   ellipsis={{ rows: 2 }}
                 >
                   {course.description || '등록된 과정 설명이 없습니다.'}
