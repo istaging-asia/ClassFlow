@@ -214,11 +214,11 @@ export default function MyLogsPage() {
       date: values.date.format('YYYY-MM-DD'),
       course_id: matchedCourse ? matchedCourse.id : null,
       course_name: courseValue,
-      title: values.title?.trim() || undefined,
+      title: values.title !== undefined ? (values.title.trim() || null) : undefined,
       total_hours: values.total_hours,
       student_count: values.student_count || 0,
       content: values.content,
-      special_notes: values.special_notes?.trim() || undefined,
+      special_notes: values.special_notes !== undefined ? (values.special_notes.trim() || null) : undefined,
     };
 
     setEditSubmitting(true);
@@ -296,7 +296,11 @@ export default function MyLogsPage() {
                 />
               </Form.Item>
 
-              <Form.Item label="수업 제목" name="title">
+              <Form.Item
+                label="수업 제목"
+                name="title"
+                rules={[{ max: 255, message: '수업 제목은 최대 255자까지 입력 가능합니다.' }]}
+              >
                 <Input size="large" placeholder="수업 주제/제목을 입력하세요 (예: React 컴포넌트 실습)" maxLength={255} />
               </Form.Item>
 
@@ -324,11 +328,22 @@ export default function MyLogsPage() {
                 <InputNumber size="large" min={0} style={{ width: '100%' }} placeholder="0" addonAfter="명" />
               </Form.Item>
 
-              <Form.Item label="수업 내용" name="content" rules={[{ required: true, message: '수업 내용을 입력하세요.' }]}>
+              <Form.Item
+                label="수업 내용"
+                name="content"
+                rules={[
+                  { required: true, message: '수업 내용을 입력하세요.' },
+                  { max: 1500, message: '수업 내용은 최대 1,500자까지 입력 가능합니다.' },
+                ]}
+              >
                 <TextArea rows={5} placeholder="당일 진행 진도 및 상세 실습 내용을 입력하세요" maxLength={1500} showCount />
               </Form.Item>
 
-              <Form.Item label="특이사항" name="special_notes">
+              <Form.Item
+                label="특이사항"
+                name="special_notes"
+                rules={[{ max: 300, message: '특이사항은 최대 300자까지 입력 가능합니다.' }]}
+              >
                 <TextArea rows={3} placeholder="학생 질문 사항, 강의실 이슈, 요청사항 등 (선택)" maxLength={300} showCount />
               </Form.Item>
 
@@ -478,7 +493,11 @@ export default function MyLogsPage() {
             />
           </Form.Item>
 
-          <Form.Item label="수업 제목" name="title">
+          <Form.Item
+            label="수업 제목"
+            name="title"
+            rules={[{ max: 255, message: '수업 제목은 최대 255자까지 입력 가능합니다.' }]}
+          >
             <Input size="large" placeholder="수업 주제/제목을 입력하세요 (예: React 컴포넌트 실습)" maxLength={255} />
           </Form.Item>
 
@@ -506,11 +525,22 @@ export default function MyLogsPage() {
             <InputNumber size="large" min={0} style={{ width: '100%' }} addonAfter="명" />
           </Form.Item>
 
-          <Form.Item label="수업 내용" name="content" rules={[{ required: true, message: '수업 내용을 입력하세요.' }]}>
+          <Form.Item
+            label="수업 내용"
+            name="content"
+            rules={[
+              { required: true, message: '수업 내용을 입력하세요.' },
+              { max: 1500, message: '수업 내용은 최대 1,500자까지 입력 가능합니다.' },
+            ]}
+          >
             <TextArea rows={5} maxLength={1500} showCount />
           </Form.Item>
 
-          <Form.Item label="특이사항" name="special_notes">
+          <Form.Item
+            label="특이사항"
+            name="special_notes"
+            rules={[{ max: 300, message: '특이사항은 최대 300자까지 입력 가능합니다.' }]}
+          >
             <TextArea rows={3} maxLength={300} showCount placeholder="학생 질문 사항, 강의실 이슈, 요청사항 등 (선택)" />
           </Form.Item>
 
