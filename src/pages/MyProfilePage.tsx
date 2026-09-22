@@ -104,8 +104,8 @@ export default function MyProfilePage() {
               <Form.Item label="연락처" name="phone">
                 <Input size="large" placeholder="010-0000-0000" />
               </Form.Item>
-              <Form.Item label="간단 소개글" name="intro" extra="2~3줄 이내로 간단히 작성해주세요.">
-                <TextArea rows={3} maxLength={150} showCount placeholder="자기소개를 입력해 주세요" />
+              <Form.Item label="간단 소개글" name="intro" extra="최대 1,000자까지 작성할 수 있습니다.">
+                <TextArea rows={4} maxLength={1000} showCount placeholder="자기소개를 입력해 주세요" />
               </Form.Item>
               <Button type="primary" size="large" icon={<SaveOutlined />} htmlType="submit" loading={saving}>
                 저장하기

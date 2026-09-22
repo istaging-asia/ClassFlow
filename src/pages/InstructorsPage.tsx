@@ -186,7 +186,7 @@ export default function InstructorsPage({ role }: { role: 'instructor' | 'admin'
             <Input size="large" />
           </Form.Item>
           <Form.Item label="간단 소개글" name="intro">
-            <Input.TextArea rows={3} maxLength={150} showCount />
+            <Input.TextArea rows={4} maxLength={1000} showCount />
           </Form.Item>
           <Form.Item label="권한" name="role">
             <Select size="large" options={[
